@@ -18,7 +18,7 @@
 
 #include <unistd.h>
 
-#define DSIZE 128
+#define DSIZE 512
 #define ERR_LOG(LOG) do{perror(LOG);exit(-1);}while(0)
 
 typedef struct msgdata {
@@ -35,30 +35,33 @@ int main(int argc, char *argv[])
     {
         ERR_LOG("ftok");
     }
+    printf("key: %d\n", key);
 
     int msg_id = msgget(key, 0664);
     if(-1 == msg_id)
     {
         ERR_LOG("msgget");
     }
+    printf("msgid: %d\n", msg_id);
 
     system("ipcs -q");
 
-    msg.type = 0;
+    msg.type = 100;
 
     while(1)
     {
-        if(-1 == msgrcv(msg_id, &msg.info, DSIZE, msg.type, 0))
+        if(-1 == msgrcv(msg_id, &msg, DSIZE, msg.type, 0))
         {
             ERR_LOG("msgrcv");
         }
-        printf("recv: %s\n", msg.info);
 
         if(NULL != strstr("quit", msg.info))
         {
             break;
         }
+        printf("recv: %s\n", msg.info);
     }
+    
     if(-1 == msgctl(msg_id, IPC_RMID, NULL))
     {
         ERR_LOG("msgctl");
